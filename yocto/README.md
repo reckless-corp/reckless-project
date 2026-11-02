@@ -31,7 +31,8 @@ switches the active VT, including when it restarts after a crash.
 
 `uno-q.yml` keeps `core-image-full-cmdline` and the Foundries services, adding
 `weston`, `weston-init`, `liberation-fonts`, and `gtk+3` (the GTK 3 runtime,
-including `libgtk-3.so.0`), plus `libx11` for the `libX11.so.6` runtime library.
+including `libgtk-3.so.0`), plus `libx11` for the `libX11.so.6` runtime library
+and `alsa-lib` for the `libasound.so.2` audio runtime library.
 X11 library support is enabled, while Weston's XWayland support remains
 disabled. It removes `matrix-console` for this image. GTK applications use
 Wayland; GTK development headers and demos are not installed.

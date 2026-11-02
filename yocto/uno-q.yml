@@ -8,6 +8,10 @@ header:
     - common.yml
 
 local_conf_header:
+  uno-q-tools: |
+    # Inspect executable shared-library dependencies on the board.
+    IMAGE_INSTALL:append = " ldd"
+
   uno-q-desktop: |
     # Keep core-image-full-cmdline and the Foundries services; add only the
     # desktop/runtime packages instead of qcom-multimedia-image's media stack.

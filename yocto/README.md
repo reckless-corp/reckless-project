@@ -36,6 +36,8 @@ X11 library support is enabled, while Weston's XWayland support remains
 disabled. It removes `matrix-console` for this image. GTK applications use
 Wayland; GTK development headers and demos are not installed.
 
+The image also includes `ldd` for inspecting executable shared-library dependencies.
+
 Weston starts automatically at `graphical.target`, using the standard
 unprivileged `weston` session on tty7. This is automatic desktop login, with no
 graphical password prompt. The inherited Qualcomm configuration supplies a

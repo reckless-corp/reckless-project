@@ -20,6 +20,9 @@ jobs:
     runs-on: [self-hosted, Linux, X64]
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Validate configuration
         run: |
           missing=0
@@ -91,6 +94,11 @@ jobs:
                   tag="reckless-corp"
                   extra="--apps matrix-app=$(ls ${x}/apps/apps/matrix-app/)"
               fi
+
+              python3 "${GITHUB_WORKSPACE}/.github/scripts/prepare-deltas.py" \
+                  --repo "${update_archive}/${x}/ostree_repo" \
+                  --cas "${casdir}/yocto" --assembled "${archive}/updates" \
+                  --machine "$x" --tag "$tag" --work-dir "${update_archive}"
 
               ${fiocli} updates upload ${tag} ${update_name}_${x} $x ${extra}
           done

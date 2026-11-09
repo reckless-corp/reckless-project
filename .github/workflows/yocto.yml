@@ -73,6 +73,8 @@ jobs:
           cd yocto/.kas-work/build/tmp/deploy/images/${{ matrix.name }}
           ls
           tar -czf "${archive}/ostree_repo.tgz" ostree_repo
+          # A cheap checksum-to-CAS index for static delta source lookup.
+          cp "ostree_repo/refs/heads/${{ matrix.name }}" "${archive}/ostree-commit"
           cp -rL ${{ matrix.artifacts }} "${archive}/"
 
   archive:

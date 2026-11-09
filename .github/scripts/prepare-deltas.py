@@ -112,10 +112,28 @@ def generate(repo, machine, sources, work_dir=None):
                 raise ValueError(f"CAS mapping does not match extracted ref: {archive}")
             ostree(scratch, "pull-local", source, commit)
             ostree(scratch, "static-delta", "generate", f"--from={commit}", f"--to={destination}")
+            report_delta_size(scratch, machine, commit, destination)
             shutil.rmtree(unpack)
         if (scratch / "deltas").exists():
             shutil.copytree(scratch / "deltas", repo / "deltas", dirs_exist_ok=True)
     ostree(repo, "summary", "--update")
+
+
+def report_delta_size(repo, machine, source, destination):
+    details = ostree(repo, "static-delta", "show", f"{source}-{destination}")
+    # Total Size includes compressed parts AND fallback objects, which live
+    # outside deltas/. This is a payload estimate, not total wire traffic.
+    match = re.search(r"^Total Size: ([0-9]+)\b", details, re.MULTILINE)
+    if match is None:
+        raise ValueError(f"No Total Size in OSTree static-delta output: {details}")
+    size = int(match[1])
+    print(
+        f"Estimated OSTree delta download [{machine}] {source} -> {destination}: "
+        f"{size:,} bytes ({size / (1024 * 1024):.2f} MiB); "
+        "compressed parts + fallback objects; excludes superblock, other metadata, "
+        "HTTP overhead, and app downloads; cached objects may reduce transfer",
+        flush=True,
+    )
 
 
 def main():

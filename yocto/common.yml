@@ -10,7 +10,7 @@ repos:
 
   meta-foundries:
     url: https://github.com/foundriesio/meta-foundries
-    commit: 2b0afacf9abf12d589de87f0dc1f988a5cf540f0
+    commit: 9cf31755ed7d92a86d4d936f8efa2ea34d575ead
     branch: wrynose
 
 local_conf_header:

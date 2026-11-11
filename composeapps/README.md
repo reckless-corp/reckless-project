@@ -29,6 +29,12 @@ All built services in an app must support the same platforms. Each
 built service should have its own `image:` repository; CI tags it with the commit
 SHA. Update the image repositories when reusing this template.
 
+CI imports and exports a registry build cache at each service's
+`<image-repository>:buildcache` tag. The cache includes intermediate build stages
+(`mode=max`), so later runs can reuse unchanged layers even on a different runner.
+The first run builds without an existing cache and populates it for later runs.
+Reserve the `buildcache` tag for CI; it is separate from the commit-tagged images.
+
 The workflow discovers app directories, uses `docker compose build --print` to
 produce the build configuration, and runs it with Buildx Bake. Apps build in
 parallel, as do their service targets. Published image digests are passed to

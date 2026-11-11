@@ -58,13 +58,18 @@ jobs:
           BUILD_OUTPUT=$(mktemp -d "${RUNNER_TEMP}/composeapp-${APP}.XXXXXX")
           echo "BUILD_OUTPUT=$BUILD_OUTPUT" >> "$GITHUB_ENV"
 
-          # Compose supplies build settings; CI adds commit tags and registry output.
+          # Compose supplies build settings; CI adds commit tags, registry cache and output.
           docker compose -f docker-compose.yml build --print | jq -s --arg tag "$GITHUB_SHA" '
             (.[0] // {target: {}}) |
             .target |= with_entries(.value |= (
               .output = ["type=registry"] |
               if (.tags | length) == 0 then error("Build services require image:") else
-                .tags = [.tags[0] | sub(":(?<tag>[^/:]+)$"; "") + ":" + $tag]
+                (.tags[0] | sub(":(?<tag>[^/:]+)$"; "")) as $image |
+                .tags = [$image + ":" + $tag] |
+                .["cache-from"] = ((.["cache-from"] // []) +
+                  ["type=registry,ref=" + $image + ":buildcache"]) |
+                .["cache-to"] = ((.["cache-to"] // []) +
+                  ["type=registry,ref=" + $image + ":buildcache,mode=max"])
               end
             ))' > "$BUILD_OUTPUT/bake.json"
           architectures=$(jq -er '

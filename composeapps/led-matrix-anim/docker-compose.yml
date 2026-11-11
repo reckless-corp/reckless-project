@@ -1,7 +1,9 @@
 services:
   matrix:
     image: ghcr.io/reckless-corp/led-matrix-anim
-    build: .
+    build:
+      context: .
+      platforms: [linux/arm64]
     platform: linux/arm64
     init: true
     command: [serve]

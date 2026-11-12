@@ -5,7 +5,7 @@ header:
   includes:
     - repo: meta-foundries
       file: ci/uno-q.yml
-    - common.yml
+    - yocto/include/common.yml
 
 local_conf_header:
   uno-q-tools: |

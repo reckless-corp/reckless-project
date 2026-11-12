@@ -193,7 +193,7 @@ The package masks only tty1's getty and explicitly enables tty2's getty.
 Its systemd preset skips the masked tty1 instance and selects tty2 when Yocto
 applies presets during rootfs creation.
 For images without the animation, remove `matrix-console` from `IMAGE_INSTALL`
-in `common.yml` and rebuild. The getty mask belongs to that package.
+in `include/common.yml` and rebuild. The getty mask belongs to that package.
 
 ## Development and validation
 

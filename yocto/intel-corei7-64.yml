@@ -7,7 +7,7 @@ header:
       file: ci/include/base.yml
     - repo: meta-foundries
       file: ci/include/nodistro.yml
-    - common.yml
+    - yocto/include/common.yml
 
 repos:
   meta-intel:

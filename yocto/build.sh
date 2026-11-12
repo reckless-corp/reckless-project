@@ -11,7 +11,7 @@ mkdir -p "${DL_DIR}" "${SSTATE_DIR}" "${KAS_WORK_DIR}"
 
 if (( $# < 1 || $# > 2 )); then
     echo "Usage: $0 <kas-file.yml> [action]"
-    echo "Available kas files:" $(ls *.yml | grep -v common)
+    echo "Available kas files:" $(ls *.yml)
     exit 2
 fi
 

@@ -17,7 +17,42 @@ permissions:
   contents: read
 
 jobs:
+  discover:
+    runs-on: [self-hosted, Linux, X64]
+    outputs:
+      matrix: ${{ steps.discover.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Discover Yocto builds
+        id: discover
+        run: |
+          set -euo pipefail
+          machines=()
+          while IFS= read -r -d '' config; do
+            machine="${config##*/}"
+            machine="${machine%.yml}"
+            if [[ ! "$machine" =~ ^[a-zA-Z0-9][a-zA-Z0-9_-]*$ ]]; then
+              # this is not JSON safe for our matrix= logic below
+              echo "Invalid machine name: $machine" >&2
+              exit 1
+            fi
+            if [[ ! -s "yocto/${machine}.archive" ]]; then
+              echo "Missing or empty archive list: yocto/${machine}.archive" >&2
+              exit 1
+            fi
+            machines+=("$machine")
+          done < <(git ls-files -z -- ':(top,glob)yocto/*.yml')
+          if (( ${#machines[@]} == 0 )); then
+            echo "No tracked yocto/*.yml build configurations found" >&2
+            exit 1
+          fi
+          printf -v names '"%s",' "${machines[@]}"
+          echo "matrix={\"name\":[${names%,}]}" >> "$GITHUB_OUTPUT"
+
   yocto:
+    needs: discover
     runs-on: [self-hosted, Linux, X64, yocto]
     env:
       ARCHIVE: ${{ inputs.archive }}
@@ -26,18 +61,7 @@ jobs:
 
     strategy:
       fail-fast: true
-      matrix:
-        include:
-          - name: intel-corei7-64
-            artifacts: >-
-              core-image-full-cmdline-intel-corei7-64.rootfs.spdx.json
-              core-image-full-cmdline-intel-corei7-64.rootfs.wic.zst
-              core-image-full-cmdline-intel-corei7-64.rootfs.wic.qcow2
-              ovmf*
-          - name: uno-q
-            artifacts: >-
-              core-image-full-cmdline-uno-q.rootfs.qcomflash
-              core-image-full-cmdline-uno-q.rootfs.spdx.json
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -75,7 +99,16 @@ jobs:
           tar -czf "${archive}/ostree_repo.tgz" ostree_repo
           # A cheap checksum-to-CAS index for static delta source lookup.
           cp "ostree_repo/refs/heads/${{ matrix.name }}" "${archive}/ostree-commit"
-          cp -rL ${{ matrix.artifacts }} "${archive}/"
+          # One filename or glob per line, relative to the deploy directory.
+          while IFS= read -r pattern || [[ -n "$pattern" ]]; do
+            [[ -z "$pattern" || "$pattern" == \#* ]] && continue
+            mapfile -t matches < <(compgen -G "$pattern" || true)
+            if (( ${#matches[@]} == 0 )); then
+              echo "Missing artifact: $pattern" >&2
+              exit 1
+            fi
+            cp -rL -- "${matches[@]}" "${archive}/"
+          done < "${GITHUB_WORKSPACE}/yocto/${{ matrix.name }}.archive"
 
   archive:
     name: Archive

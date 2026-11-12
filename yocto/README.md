@@ -10,8 +10,35 @@ Build either image from the `yocto/` directory:
 From the repository root, use `./yocto/build.sh <machine>.yml`. The wrapper
 honors `KAS_WORK_DIR`, `DL_DIR`, `SSTATE_DIR`, and `KAS_CONTAINER` overrides;
 defaults use local `.build` directories and the checked-in KAS 5.5 launcher.
-CI freezes upstream revisions and archives both machines as one reusable
-component. See the [CI guide](../scripts/build/README.md).
+CI freezes upstream revisions and archives all discovered machines as one reusable
+component.
+
+## Adding CI builds
+
+The Yocto workflow uses `git ls-files` to discover tracked top-level
+`yocto/*.yml` files. Name each file
+after its Yocto machine (for example, `uno-q.yml`); CI uses that name for the
+deploy directory, OSTree ref, and archive directory. Shared include files belong
+in `yocto/include/` and are not discovered as builds.
+
+Each build file needs a companion `.archive` text file, for example
+`yocto/uno-q.archive`:
+
+```text
+core-image-full-cmdline-uno-q.rootfs.qcomflash
+core-image-full-cmdline-uno-q.rootfs.spdx.json
+```
+
+List one filename or glob per line, relative to `tmp/deploy/images/<machine>/`.
+Blank lines and lines starting with `#` are ignored. CI copies each match into
+the machine's archive, following symlinks, and fails if any pattern matches
+nothing. The `ostree_repo.tgz` and `ostree-commit` files are always archived
+separately. The existing Intel list also includes `ovmf*` for firmware.
+
+Adding a build requires only the `.yml` configuration and its `.archive` list;
+no workflow edit is needed. Discovery uses Bash, and kas receives the original
+configuration directly. Archive lists live under `yocto/` so changes participate
+in the existing CI content fingerprint.
 
 Both configurations include `meta-project`. UNO Q boots a minimal Weston desktop
 with GTK 3 support (see below). Intel includes the `matrix-console` package.

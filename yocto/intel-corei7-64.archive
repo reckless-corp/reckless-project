@@ -1,0 +1,4 @@
+core-image-full-cmdline-intel-corei7-64.rootfs.spdx.json
+core-image-full-cmdline-intel-corei7-64.rootfs.wic.zst
+core-image-full-cmdline-intel-corei7-64.rootfs.wic.qcow2
+ovmf*
